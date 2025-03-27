@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-5">
+    <div class="row align-items-center mb-5">
+        <!-- Обложка плейлиста -->
+        <div class="col-md-4 mb-4 mb-md-0">
+            <div class="position-relative">
+                <img src="{{ playlist.image.url }}" alt="Обложка плейлиста" class="img-fluid rounded-3 shadow-lg"
+                    style="max-height: 300px; object-fit: cover;">
+                <div class="position-absolute bottom-0 end-0 bg-dark bg-opacity-75 px-3 py-1 rounded-start">
+                    <span class="text-white small">{{ playlist.tracks.count }} треков</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о плейлисте -->
+        <div class="col-md-8">
+            <h1 class="display-4 fw-bold text-light mb-3">{{ playlist.title }}</h1>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary fs-6">{{ playlist.genre|default:"Все жанры" }}</span>
+                <span class="text-muted">Создан {{ playlist.created_at|date:"d.m.Y" }}</span>
+            </div>
+
+            <!-- Кнопки управления -->
+            {% if request.user == playlist.owner %}
+            <div class="mt-4 d-flex gap-2">
+                <a href="#" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash me-2"></i>Удалить
+                </a>
+                <a href="#" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-pencil me-2"></i>Изменить
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Список треков -->
+    <div class="card bg-dark border-0">
+        <div class="card-body">
+            <h2 class="h4 text-light mb-4">Треки в плейлисте</h2>
+
+            {% if playlist.tracks.all %}
+            <div class="list-group gap-3">
+                {% for track in playlist.tracks.all %}
+                <div class="list-group-item bg-transparent d-flex align-items-center">
+                    <!-- Номер трека -->
+                    <span class="text-light me-3" style="width: 40px;">#{{ forloop.counter }}</span>
+
+                    <!-- Информация о треке -->
+                    <div class="flex-grow-2 me-3"><img src="{{track.image.url}}" alt="track_cover" width="60px"></div>
+                    <div class="flex-grow-1 me-4">
+
+                        <div class="text-light fw-bold"><a href="#">{{ track.title }}</a></div>
+                        <div class="text-light"><a
+                                href="{% url 'music:artist_detail' pk=track.artist.id %}">{{track.artist.name }}
+                            </a>• {{ track.duration|time:"H:i:s"}}</div>
+                    </div>
+
+                    <!-- Аудиоплеер -->
+                    <audio controls class="flex-shrink-0" style="width: 250px;">
+                        <source src="{{ track.audio_file.url }}" type="audio/mpeg">
+                        Ваш браузер не поддерживает аудиоплеер.
+                    </audio>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-music-note-beamed fs-1 text-muted mb-3"></i>
+                <p class="text-muted">В этом плейлисте пока нет треков</p>
+                <a href="#" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Добавить треки
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    audio::-webkit-media-controls-panel {
+        background-color: #2d2d2d;
+    }
+
+    audio::-webkit-media-controls-play-button,
+    audio::-webkit-media-controls-mute-button {
+        filter: invert(1);
+    }
+
+    .list-group-item {
+        transition: background-color 0.3s ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .list-group-item:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+</style>
+
+{% endblock content %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Мои плейлисты</h1>
+<ul style="list-style: none;">
+    {% if playlists %}
+    {% for playlist in playlists %}
+    <li>
+        <div class="container">
+            <div>
+                <a href="{% url 'music:playlist_detail' pk=playlist.id %}"><img src="{{playlist.image.url}}"
+                        alt="ablum_cover" width="30%">
+                    <p>{{playlist}}</p>
+                </a>
+            </div>
+        </div>
+    </li>
+
+    {% endfor %}
+    {% else %}
+    <h2>У тебя нет плейлистов</h2>
+    {% endif %}
+</ul>
+
+</form>
+<a href="{% url 'music:create_playlist' %}">Создать плейлист</a>
+{% endblock content %}

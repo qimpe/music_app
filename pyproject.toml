@@ -1,0 +1,14 @@
+[project]
+name = "music-app"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.37.18",
+    "django>=5.1.7",
+    "django-storages>=1.14.5",
+    "mutagen>=1.47.0",
+    "pillow>=11.1.0",
+    "python-dotenv>=1.0.1",
+]

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<form action="{% url 'music:create_album' pk=artist.pk %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <h2>Твои треки, которые можно поместить в альбом</h2>
+    <p>
+        {% for track in tracks %}
+        <label>
+            <input type="checkbox" name="tracks" value="{{ track.id }}">
+            {{ track.title }}
+        </label><br>
+        {% endfor %}
+    </p>
+    <button type="submit">Создать альбом</button>
+</form>
+
+{% endblock content %}
