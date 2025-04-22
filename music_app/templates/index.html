@@ -1,6 +1,25 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-<h1>Главная</h1>
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
+<h2>Популярные артисты месяца</h2>
+<div class="carousel-wrapper">
+    <div class="carousel-single-container">
+        <div class="carousel-single-track" id="carousel-single-track">
+            {% for artist in top_month_artists %}
+            <div class="artist-card">
+                <img src="{{ artist.image.url }}" alt="{{ artist.name }}">
+                <div class="artist-info">
+                    <h3>{{ artist.name }}</h3>
+                    <p>{{ artist.month_listeners }} слушателей в месяц</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{% static 'js/carousel.js' %}"></script>
+</div>
 
 {% endblock content %}

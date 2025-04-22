@@ -3,7 +3,6 @@
 <form action="{% url 'music:create_track' pk=request.user.id %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{form.as_p}}
-
     <button type="submit">Создать трек</button>
 
 </form>

@@ -21,6 +21,7 @@ class Album(models.Model):
     image = models.FileField(upload_to="albums_images/")
     release_date = models.DateTimeField(auto_now_add=True)
     is_explicit = models.BooleanField(default=False, null=False)
+    # не опубликованный
 
 
 class Genre(models.Model):
@@ -60,4 +61,4 @@ class Playlist(models.Model):
         return self.title
 
     class Meta:
-        unique_together = ("owner", "is_liked_playlist")
+        unique_together = ("owner", "is_liked_playlist", "title")

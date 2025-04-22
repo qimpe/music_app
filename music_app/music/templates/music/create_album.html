@@ -1,18 +1,19 @@
 {% extends "base.html" %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'music/css/styles.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'css/styles.css' %}" type="text/css">
+{% endblock head %}
 {% block content %}
-<form action="{% url 'music:create_album' pk=artist.pk %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <h2>Твои треки, которые можно поместить в альбом</h2>
-    <p>
-        {% for track in tracks %}
-        <label>
-            <input type="checkbox" name="tracks" value="{{ track.id }}">
-            {{ track.title }}
-        </label><br>
-        {% endfor %}
-    </p>
-    <button type="submit">Создать альбом</button>
-</form>
-
+<div class="form-wrapper">
+    <form action="{% url 'music:create_album' artist_id=artist_id %}" method="post" enctype="multipart/form-data"
+        class="album-form">
+        {% csrf_token %}
+        <h2 class="form-title-create-album">Создание альбома</h2>
+        <div class="form-fields">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="submit-button">Создать альбом</button>
+    </form>
+</div>
 {% endblock content %}

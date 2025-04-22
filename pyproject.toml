@@ -8,7 +8,9 @@ dependencies = [
     "boto3>=1.37.18",
     "django>=5.1.7",
     "django-storages>=1.14.5",
+    "gunicorn>=23.0.0",
     "mutagen>=1.47.0",
     "pillow>=11.1.0",
     "python-dotenv>=1.0.1",
+    "waitress>=3.0.2",
 ]

@@ -1,9 +1,10 @@
-from django.contrib import admin
 from django.urls import path
 
 from .views import (
     AddTrackInPlaylist,
+    AlbumDetailView,
     ArtistDetailView,
+    AudioStreamView,
     CreateAlbum,
     CreateArtist,
     CreatePlaylist,
@@ -18,7 +19,11 @@ app_name = "music"
 urlpatterns = [
     path("create-artist/", CreateArtist.as_view(), name="create_artist"),
     path("artist/<int:pk>/", ArtistDetailView.as_view(), name="artist_detail"),
-    path("artist/<int:pk>/create-album/", CreateAlbum.as_view(), name="create_album"),
+    path(
+        "artist/<int:artist_id>/create-album/",
+        CreateAlbum.as_view(),
+        name="create_album",
+    ),
     path("artist/<int:pk>/create-track/", CreateTrack.as_view(), name="create_track"),
     path("playlist/<int:pk>", PlaylistDetail.as_view(), name="playlist_detail"),
     path("my-playlists/", MyPlaylists.as_view(), name="my_playlists"),
@@ -29,8 +34,10 @@ urlpatterns = [
         name="add_track",
     ),
     path(
-        "like-track/<int:track_id>/",
+        "manage-track/<int:track_id>/",
         ManageFavoriteTrack.as_view(),
-        name="like_track",
+        name="manage_track",
     ),
+    path("stream/<int:track_id>/", AudioStreamView.as_view(), name="stream_audio"),
+    path("album/<int:album_id>/", AlbumDetailView.as_view(), name="album_detail"),
 ]

@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-xisu=(f*iz)du)ns6s)o18weyeq0f_(2*cgl@h7+-=$(_8-u1j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0"]
 
 
 # Application definition
@@ -76,6 +76,7 @@ WSGI_APPLICATION = "music_app.wsgi.application"
 
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/users/sign-in/"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 

@@ -1,0 +1,126 @@
+
+/* Карточка с формой */
+.sign-card {
+    background: rgb(16, 16, 16);
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.548);
+    width: 100%;
+    max-width: 400px;
+    height: 75%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1 {
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* Стили формы */
+form {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+}
+
+form ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+form li {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #4400ff;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Стили кнопки */
+button[type="submit"] {
+    position: absolute;
+    background: #4d10e9;
+    color: white;
+    padding: 0.7rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+    margin-top: 200px;
+    
+}
+
+button[type="submit"]:hover {
+    background:rgb(55, 4, 149);
+    color: ffffff;
+}
+
+/* Ссылка "Нет аккаунта?" */
+.sign-card a {
+    display: block;
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #404040;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.sign-card a:hover {
+    color: #ffffff;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .sign-card {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+}
+.my-artists{
+    display: flex;
+    text-align: center;
+    gap: 2rem;
+}
+.my-artist-img{
+    width: 250px;
+    height: 250px;
+    object-fit: cover; /* или contain */
+    border-radius: 50%; /* если нужен скругленный */
+}
+.my-artist-img:hover{
+    transform: scale(1.2);
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 3;
+    transform-style: preserve-3d;
+    transition: ease-in-out;
+    filter: brightness(0.8);
+}

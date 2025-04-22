@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'music/css/styles.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'css/styles.css' %}" type="text/css">
+{% endblock head %}
+{% block content %}
+<div class="album">
+    <div class="album-wrapper">
+        <div class="album-cover-container">
+            <img class="album-cover" src="{{ album.image.url }}" alt="album_image">
+            <div class="play-button-album">
+                <a href="#">Слушать</a>
+            </div>
+        </div>
+        <div class="album-info">
+            <h4 class="album-data">Альбом</h4>
+            <p class="album-title">{{ album.title }}</p>
+            <p class="album-data">{{ album.release_date|date:"Y" }} - {{ album.artist }}</p>
+        </div>
+    </div>
+    <div class="album-track-list">
+        {% for track in tracks %}
+        <div class="track">
+            <p>{{ forloop.counter }}. {{ track.title }}</p>
+
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}

@@ -1,115 +1,120 @@
 {% extends "base.html" %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'music/css/styles.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'css/styles.css' %}" type="text/css">
+{% endblock head %}
 {% block content %}
 <div>
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-6 order-md-1">
-                <img class="img-fluid rounded-3 shadow-lg" src="{{ artist.image.url }}" alt="{{ artist.name }}"
-                    style="max-height: 500px; width: 100%; object-fit: cover;">
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div>
+        <div class="artist-header">
+            <div class="artist-image-container">
+                <img class="profile-image" src="{{ artist.image.url }}" alt="{{ artist.name }}">
             </div>
-            <div class="col-md-6 order-md-2">
-                <span class="text" style="color: rgb(113, 113, 113);">Исполнитель</span>
-                <h1 class="display-4 fw-bold mb-4">{{ artist.name }}</h1>
-
-                <div class="mb-4">
-                    <p class="h5">
-                        <strong>Слушателей в месяц:</strong>
-                        <span class="text">{{ artist.month_listeners }}</span>
+            <div class="artist-info">
+                <span style="opacity: 50%;">Исполнитель</span>
+                <h1>{{ artist.name }}</h1>
+                <div>
+                    <p>
+                        <span>{{ artist.month_listeners }} cлушателей в месяц</span>
                     </p>
                 </div>
-
-                <p class="lead text-muted">{{ artist.bio }}</p>
+                <p>{{ artist.bio }}</p>
+            </div>
+            <div class="artist-actions">
+                <a class="profile-like-link" href="">❤️</a>
+                <a class="profile-follow-link" href="">Подписаться</a>
             </div>
         </div>
 
-        <div class="container py-5">
-            <!-- Секция с релизами -->
-            {% if tracks %}
-            <div class="mb-5">
-                <h2 class="text-light mb-4 border-bottom pb-3">Твои релизы</h2>
 
-                <!-- Список треков -->
-                <div class="list-group gap-3">
+        <div>
+            {% if tracks %}
+            <div>
+                <h2>Твои релизы</h2>
+                <div class="track-list">
                     {% for track in tracks %}
-                    <div class="list-group-item rounded-3 p-3 d-flex align-items-center"
-                        style="background-color: #141414;">
-                        <div class="flex-grow-1">
-                            <span class="fs-5 text-light">{{ track.title }}</span>
-                            <small class="text-light d-block mt-1">{{ track.artist }}</small>
+                    <div class="track-item" data-audio="{{ track.audio_file.url }}" data-title="{{ track.title }}"
+                        data-artist="{{ track.artist }}">
+
+                        <div class="track-info">
+                            <button class="play-button-artist">▶️</button>
+                            <span class="track-title">{{ track.title }}</span>
                         </div>
 
-                        <!-- Управление треком
-                        <div class="d-flex align-items-center gap-3 ms-4">
-                            <!Форма добавления в плейлист 
-                            <form action="{% url 'music:add_track' track_id=track.id %}" method="post"
-                                class="d-flex gap-2">
-                                {% csrf_token %}
-                                <select name="playlist_id"
-                                    class="form-select form-select-sm bg-dark text-light border-dark">
-                                    <option value="">Плейлист</option>
-                                    {% for playlist in playlists %}
-                                    <option value="{{ playlist.id }}">{{ playlist.title }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-outline-light">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
-                            </form> -->
-
-                        <!-- Форма лайков -->
-                        <form action="{% url 'music:like_track' track_id=track.id %}" method="post">
+                        <form action="{% url 'music:manage_track' track.id %}" method="post" class="like-form">
                             {% csrf_token %}
                             <button type="submit" name="action"
                                 value="{% if track in liked_tracks %}unlike{% else %}like{% endif %}"
-                                class="btn btn-link text-decoration-none p-0">
-                                <i class="bi bi-heart{% if track not in liked_tracks %}-fill{% endif %} fs-5 
-                                       {% if track in liked_tracks %}text-danger{% else %}text-light{% endif %}"></i>
+                                class="like-button">
+                                ♥
                             </button>
                         </form>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
 
-            <!-- Секция альбомов -->
-            <div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
+                <!-- Глобальный плеер -->
+                <div id="bottom-player" style="display: none;">
+                    <div id="player-info">
+                        <span id="player-title"></span> — <span id="player-artist"></span>
+                    </div>
+                    <audio id="global-audio" controls autoplay></audio>
+                </div>
+
+
+            </div>
+            {% if albums %}
+            <div class="albums-list">
                 {% for album in albums %}
-                <div class="col">
-                    <div class="card bg-dark-subtle border-0 h-100">
-                        <img src="{{ album.image.url }}" class="card-img-top rounded-3" alt="{{ album.name }}"
-                            style="height: 250px; object-fit: cover;">
-                        <div class="card-body">
-                            <h5 class="card-title text-light mb-1">{{ album.name }}</h5>
-                            <p class="text-muted small">{{ album.artist }}</p>
-                            <div class="d-flex gap-2 mt-2">
-                                <span class="badge bg-primary">{{ album.release_date|date:"Y" }}</span>
-                                <span class="badge bg-secondary">{{ album.genre }}</span>
-                            </div>
+                <a class="album-detail" href="{% url 'music:album_detail' album.id %}">
+                    <div class="album-list-data">
+                        <img class="profile-album-cover" src="{{ album.image.url }}" alt="{{ album.name }}">
+                        <div>
+                            <h3 class="album-title">{{ album.title }}</h3>
+                            <p>{{ album.artist }}</p>
+                            <p>{{ album.release_date|date:"Y" }}</p>
                         </div>
                     </div>
-                </div>
+                </a>
                 {% endfor %}
             </div>
+            {% endif %}
+
+
         </div>
         {% else %}
-        <div class="alert alert-dark text-center py-4" role="alert">
-            <i class="bi bi-music-note-beamed fs-1 d-block mb-3"></i>
-            У тебя пока нет треков. Создай свой первый трек!
+        <div>
+            <div>🎵</div>
+            <p>У тебя пока нет треков. Создай свой первый трек!</p>
         </div>
         {% endif %}
 
-        <!-- Кнопки создания -->
         {% if artist.user == request.user %}
-        <div class="d-flex gap-3 justify-content-center mt-5">
-            <a href="{% url 'music:create_album' pk=artist.id %}"
-                class="btn btn-primary px-4 py-2 rounded-pill d-flex align-items-center">
-                <i class="bi bi-plus-circle me-2"></i>Создать альбом
-            </a>
-            <a href="{% url 'music:create_track' pk=artist.id %}"
-                class="btn btn-outline-light px-4 py-2 rounded-pill d-flex align-items-center">
-                <i class="bi bi-music-note me-2"></i>Создать сингл
-            </a>
+        <div class="release-manage">
+            <h2>Управление релизами</h2>
+            <div class="manage-buttons">
+                <a class="manage-button" href="{% url 'music:create_album' artist_id=artist.id %}">
+                    Создать альбом
+                </a>
+                <a class="manage-button" href="{% url 'music:create_track' pk=artist.id %}">
+                    Создать сингл
+                </a>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
-    {% endblock content %}
+</div>
+<script src="{% static 'music/js/script.js' %}"></script>
+</div>
+
+{% endblock content %}

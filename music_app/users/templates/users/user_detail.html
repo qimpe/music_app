@@ -1,5 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
+<link rel="stylesheet" href="{% static 'users/css/styles.css' %}">
 <h1>Привет, {{request.user.username}}!</h1>
 <div>
     <div>
@@ -11,8 +14,11 @@
         <h3>Страницы артистов</h3>
         {% if artists %}
         {% for artist in artists %}
-        <a href="{% url 'music:artist_detail' pk=artist.id %}">{{artist.name}}</a></p>
-        {% endfor %}
+        <div class="my-artists">
+            <a href="{% url 'music:artist_detail' pk=artist.id %}">
+                <img class="my-artist-img" src="{{ artist.image.url }}" alt="{{artist.name}}"></a>
+            {% endfor %}
+        </div>
         {% endif %}
     </div>
     <div>
