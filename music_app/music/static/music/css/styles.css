@@ -150,6 +150,7 @@ h1{
   }
 .album-detail{
   overflow: hidden;
+  border-radius: 5%;
 
 }
 .album-wrapper {
@@ -165,11 +166,12 @@ h1{
   width: 300px;
   height: 300px;
   object-fit: cover; /* Картинка будет обрезаться по размерам контейнера */
-  border-radius: 5%; /* Скругленные углы */
- 
-  
-}
+  border-radius: 0%;
 
+}
+.album-profile-info{
+  margin-left: 0.25rem;
+}
 .album-info {
   display: flex;
   flex-direction: column; /* Информация будет располагаться вертикально */

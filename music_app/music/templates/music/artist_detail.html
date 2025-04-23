@@ -25,7 +25,7 @@
                 <h1>{{ artist.name }}</h1>
                 <div>
                     <p>
-                        <span>{{ artist.month_listeners }} cлушателей в месяц</span>
+                        <span><strong>{{ artist.month_listeners }} cлушателей в месяц</strong></span>
                     </p>
                 </div>
                 <p>{{ artist.bio }}</p>
@@ -40,7 +40,7 @@
         <div>
             {% if tracks %}
             <div>
-                <h2>Твои релизы</h2>
+                <h2>Популярные треки</h2>
                 <div class="track-list">
                     {% for track in tracks %}
                     <div class="track-item" data-audio="{{ track.audio_file.url }}" data-title="{{ track.title }}"
@@ -50,6 +50,11 @@
                             <button class="play-button-artist">▶️</button>
                             <span class="track-title">{{ track.title }}</span>
                         </div>
+                        <audio controls preload="metadata">
+                            <source src="{% url 'music:stream_audio' track.id %}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+
 
                         <form action="{% url 'music:manage_track' track.id %}" method="post" class="like-form">
                             {% csrf_token %}
@@ -74,12 +79,14 @@
 
             </div>
             {% if albums %}
+            <h2>Последние релизы</h2>
+
             <div class="albums-list">
                 {% for album in albums %}
                 <a class="album-detail" href="{% url 'music:album_detail' album.id %}">
                     <div class="album-list-data">
                         <img class="profile-album-cover" src="{{ album.image.url }}" alt="{{ album.name }}">
-                        <div>
+                        <div class="album-profile-info">
                             <h3 class="album-title">{{ album.title }}</h3>
                             <p>{{ album.artist }}</p>
                             <p>{{ album.release_date|date:"Y" }}</p>
@@ -87,6 +94,7 @@
                     </div>
                 </a>
                 {% endfor %}
+
             </div>
             {% endif %}
 

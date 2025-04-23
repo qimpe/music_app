@@ -54,7 +54,7 @@
 
                         <div class="text-light fw-bold"><a href="#">{{ track.title }}</a></div>
                         <div class="text-light"><a
-                                href="{% url 'music:artist_detail' pk=track.artist.id %}">{{track.artist.name }}
+                                href="{% url 'music:artist_detail' artist_id=track.artist.id %}">{{track.artist.name }}
                             </a>• {{ track.duration|time:"H:i:s"}}</div>
                     </div>
 
@@ -78,25 +78,5 @@
         </div>
     </div>
 </div>
-
-<style>
-    audio::-webkit-media-controls-panel {
-        background-color: #2d2d2d;
-    }
-
-    audio::-webkit-media-controls-play-button,
-    audio::-webkit-media-controls-mute-button {
-        filter: invert(1);
-    }
-
-    .list-group-item {
-        transition: background-color 0.3s ease;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .list-group-item:hover {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-    }
-</style>
 
 {% endblock content %}

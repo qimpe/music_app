@@ -18,6 +18,16 @@
             <p class="album-title">{{ album.title }}</p>
             <p class="album-data">{{ album.release_date|date:"Y" }} - {{ album.artist }}</p>
         </div>
+        {% if request.user.id == artist.user.id %}
+        {% if album.status == album.Status.DRAFT %}
+        <div class="album-manage">
+            <form action="{% url 'music:release_album' artist_id=artist.id album_id=album.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit">Релиз</button>
+            </form>
+        </div>
+        {% endif %}
+        {% endif %}
     </div>
     <div class="album-track-list">
         {% for track in tracks %}

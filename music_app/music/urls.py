@@ -6,19 +6,20 @@ from .views import (
     ArtistDetailView,
     AudioStreamView,
     CreateAlbum,
-    CreateArtist,
+    CreateArtistView,
     CreatePlaylist,
     CreateTrack,
     ManageFavoriteTrack,
     MyPlaylists,
     PlaylistDetail,
+    ReleaseAlbumView,
 )
 
 app_name = "music"
 
 urlpatterns = [
-    path("create-artist/", CreateArtist.as_view(), name="create_artist"),
-    path("artist/<int:pk>/", ArtistDetailView.as_view(), name="artist_detail"),
+    path("create-artist/", CreateArtistView.as_view(), name="create_artist"),
+    path("artist/<int:artist_id>/", ArtistDetailView.as_view(), name="artist_detail"),
     path(
         "artist/<int:artist_id>/create-album/",
         CreateAlbum.as_view(),
@@ -40,4 +41,9 @@ urlpatterns = [
     ),
     path("stream/<int:track_id>/", AudioStreamView.as_view(), name="stream_audio"),
     path("album/<int:album_id>/", AlbumDetailView.as_view(), name="album_detail"),
+    path(
+        "artist/<int:artist_id>/release-album/<int:album_id>/",
+        ReleaseAlbumView.as_view(),
+        name="release_album",
+    ),
 ]

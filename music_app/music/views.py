@@ -3,10 +3,11 @@ import os
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.forms import BaseModelForm
-from django.http import FileResponse, HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -28,6 +29,7 @@ from .models import Album, Artist, Playlist, Track
 
 
 # Create your views here.
+# * Main Page
 def index(request) -> HttpResponse:
     """Главная страница с топом артистов, последними релизами артистов за которыми следит пользователь"""
     top_month_artists = Artist.objects.order_by("-month_listeners")[:5]
@@ -35,12 +37,16 @@ def index(request) -> HttpResponse:
     return render(request, "index.html", context=context)
 
 
-class CreateArtist(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+# * Artist Views
+class CreateArtistView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Представление создание артиста"""
+
     form_class = CreateArtistForm
     template_name = "music/create_artist.html"
     permission_denied_message = "The number of artists you can create has been exceeded"
 
     def test_func(self) -> bool:
+        """Проверяет может ли пользователь создать более одного артиста. Лейбл может создать больше 1 артиста"""
         user = self.request.user
         return user.is_label or Artist.objects.filter(user=user).count() < 1
 
@@ -56,7 +62,7 @@ class ArtistDetailView(DetailView):
     """Подробная страница артиста"""
 
     model = Artist
-    pk_url_kwarg = "pk"
+    pk_url_kwarg = "artist_id"
     template_name = "music/artist_detail.html"
     context_object_name = "artist"
 
@@ -64,13 +70,19 @@ class ArtistDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         artist = self.object
         user = self.request.user
+        if user == artist.user:
+            context["albums"] = Album.objects.filter(artist=artist).order_by(
+                "-release_date"
+            )
+        else:
+            context["albums"] = Album.objects.filter(
+                artist=artist, release_date__isnull=False
+            ).order_by("-release_date")
         context.update(
             {
                 "tracks": Track.objects.filter(artist=artist),
-                "albums": Album.objects.filter(artist=artist),
             }
         )
-
         user_likes_playlist, _ = Playlist.objects.get_or_create(
             owner=user, is_liked_playlist=True
         )
@@ -83,6 +95,7 @@ class ArtistDetailView(DetailView):
         return context
 
 
+# * Albums views
 class CreateAlbum(ArtistAccessMixin, LoginRequiredMixin, CreateView):
     """Представление создания альбома"""
 
@@ -109,10 +122,40 @@ class CreateAlbum(ArtistAccessMixin, LoginRequiredMixin, CreateView):
         return response
 
     def get_success_url(self):
-        return reverse_lazy("music:artist_detail", kwargs={"pk": self.artist.pk})
+        return reverse_lazy("music:artist_detail", kwargs={"artist_id": self.artist.pk})
 
 
+class AlbumDetailView(DetailView):
+    """Подробная информация об альбоме"""
+
+    model = Album
+    pk_url_kwarg = "album_id"
+    template_name = "music/album_detail.html"
+    context_object_name = "album"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        album: Album = self.get_object()
+        if self.request.user == album.artist.user:
+            context["artist"] = album.artist
+        context.update({"tracks": Track.objects.filter(album=album)})
+        return context
+
+
+class ReleaseAlbumView(ArtistAccessMixin, View):
+    """Релизит альбом для, становится общедоступным"""
+
+    def post(self, request, artist_id: int, album_id: int):
+        if album := get_object_or_404(Album, pk=album_id):
+            album.release()
+            return redirect("music:artist_detail", artist_id=artist_id)
+        return HttpResponse("Album does not exist", status=404)
+
+
+# * Track views
 class CreateTrack(LoginRequiredMixin, CreateView):
+    """Представление создания трека"""
+
     form_class = CreateTrackForm
     template_name = "music/create_track.html"
 
@@ -132,109 +175,54 @@ class CreateTrack(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class AlbumDetailView(DetailView):
-    model = Album
-    pk_url_kwarg = "album_id"
-    template_name = "music/album_detail.html"
-    context_object_name = "album"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        album = self.get_object()
-        context.update({"tracks": Track.objects.filter(album=album)})
-        return context
-
-
 class AudioStreamView(View):
-    CHUNK_SIZE = 8192
-    MIME_TYPE = "audio/mpeg"
-
     def get(self, request, track_id):
-        try:
-            track = get_object_or_404(Track, pk=track_id)
-            file_path = track.audio_file.path
+        track = get_object_or_404(Track, id=track_id)
+        file_path = track.audio_file.path
+        file_size = os.path.getsize(file_path)
+        range_header: str = request.headers.get("Range", "").strip()
+        start, end = range_header.replace("bytes=", "").split("-")
 
-            if not os.path.exists(file_path):
-                raise FileNotFoundError("Audio file not found")
+        content_type = "audio/mpeg"
+        response = None
 
-            file_size: int = os.path.getsize(file_path)
-            range_header: str = request.headers.get("Range", "").strip()
-            print(range_header)
-            if not range_header:
-                response = FileResponse(
-                    open(file_path, "rb"),
-                    content_type=self.MIME_TYPE,
-                    as_attachment=False,
-                )
-                response["Accept-Ranges"] = "bytes"
-                return response
+        if range_header:
+            print("range part")
+            start = int(start)
+            end = int(end) if end else file_size - 1
+            length = end - start + 1
 
-            byte_range = self.parse_range_header(range_header, file_size)
+            def stream_file():
+                with open(file_path, "rb") as f:
+                    f.seek(start)
+                    remaining = length
+                    chunk_size = 8192  # 8KB
 
-            if not byte_range:
-                return HttpResponse(status=416)
-            start, end = byte_range
-            content_length = end - start + 1
-            response = FileResponse(
-                self.file_iterator(file_path, start, end),
-                status=206,
-                content_type=self.MIME_TYPE,
+                    while remaining > 0:
+                        data = f.read(min(chunk_size, remaining))
+                        if not data:
+                            break
+                        yield data
+                        remaining -= len(data)
+
+            response = StreamingHttpResponse(
+                stream_file(), status=206, content_type=content_type
             )
             response["Content-Range"] = f"bytes {start}-{end}/{file_size}"
-            response["Accept-Ranges"] = "bytes"
-            response["Content-Length"] = content_length
-            return response
-        except Track.DoesNotExist:
-            return HttpResponse("Track not found", status=404)
-        except FileNotFoundError:
-            return HttpResponse("Audio file not found", status=404)
-        except Exception as e:
-            # В продакшене следует добавить логирование ошибки
-            return HttpResponse(str(e), status=500)
+            response["Content-Length"] = str(length)
 
-    def parse_range_header(self, range_header: str, file_size: int) -> tuple:
-        try:
-            # Разделяем "bytes=0-100" на "bytes" и "0-100"
-            unit, ranges = range_header.split("=")
-            if unit.strip().lower() != "bytes":
-                return None
+        else:
+            print("full file sending")
 
-            # Разделяем "0-100" на start_str и end_str
-            start_str, end_str = ranges.split("-", 1)
+            def stream_file():
+                with open(file_path, "rb") as f:
+                    yield from f
 
-            # Парсим start
-            start = int(start_str) if start_str else 0
+            response = StreamingHttpResponse(stream_file(), content_type=content_type)
+            response["Content-Length"] = str(file_size)
 
-            # Парсим end
-            if end_str:
-                end = int(end_str)
-            else:
-                # Если end не указан (например, "bytes=0-"), берем конец файла
-                end = file_size - 1
-
-            # Корректируем end, если он больше размера файла
-            end = min(end, file_size - 1)
-
-            # Проверяем валидность диапазона
-            if start < 0 or start > end:
-                return None
-
-            return (start, end)
-        except (ValueError, AttributeError, TypeError):
-            return None
-
-    def file_iterator(self, file_path: str, start: int, end: int):
-        with open(file_path, "rb") as file:
-            file.seek(start)
-            remaining = end - start + 1
-
-            while remaining > 0:
-                chunk_size = min(self.CHUNK_SIZE, remaining)
-                data = file.read(chunk_size)
-                if not data:
-                    break
-                remaining -= len(data)
-                yield (data)
+        response["Accept-Ranges"] = "bytes"
+        return response
 
 
 class ManageFavoriteTrack(LoginRequiredMixin, View):

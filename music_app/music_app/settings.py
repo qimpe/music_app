@@ -72,6 +72,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "music_app.wsgi.application"
 
 LOGOUT_REDIRECT_URL = "/"

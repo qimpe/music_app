@@ -15,7 +15,7 @@
         {% if artists %}
         {% for artist in artists %}
         <div class="my-artists">
-            <a href="{% url 'music:artist_detail' pk=artist.id %}">
+            <a href="{% url 'music:artist_detail' artist_id=artist.id %}">
                 <img class="my-artist-img" src="{{ artist.image.url }}" alt="{{artist.name}}"></a>
             {% endfor %}
         </div>
