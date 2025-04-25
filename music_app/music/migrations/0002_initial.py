@@ -6,33 +6,38 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('music', '0001_initial'),
+        ("music", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='artist',
-            name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="artist",
+            name="user",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='album',
-            name='artist',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='music.artist'),
+            model_name="album",
+            name="artist",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="music.artist"),
         ),
         migrations.AddField(
-            model_name='track',
-            name='album',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='music.album'),
+            model_name="track",
+            name="album",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to="music.album",
+            ),
         ),
         migrations.AddField(
-            model_name='track',
-            name='genre',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='music.genre'),
+            model_name="track",
+            name="genre",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to="music.genre",
+            ),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('music', '0008_track_artist_alter_track_duration'),
+        ("music", "0008_track_artist_alter_track_duration"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='playlist',
-            name='tracks',
-            field=models.ManyToManyField(to='music.track'),
+            model_name="playlist",
+            name="tracks",
+            field=models.ManyToManyField(to="music.track"),
         ),
     ]

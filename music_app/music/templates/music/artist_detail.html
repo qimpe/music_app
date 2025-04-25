@@ -25,14 +25,17 @@
                 <h1>{{ artist.name }}</h1>
                 <div>
                     <p>
-                        <span><strong>{{ artist.month_listeners }} cлушателей в месяц</strong></span>
+                        <span><strong>{{ month_listeners }} cлушателей в месяц</strong></span>
                     </p>
                 </div>
                 <p>{{ artist.bio }}</p>
             </div>
             <div class="artist-actions">
-                <a class="profile-like-link" href="">❤️</a>
-                <a class="profile-follow-link" href="">Подписаться</a>
+                <form action="{% url 'music:follow_artist' artist_id=artist.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="profile-like-link">❤️</button>
+                </form>
+                <a class=" profile-follow-link" href="">Подписаться</a>
             </div>
         </div>
 
@@ -50,13 +53,13 @@
                             <button class="play-button-artist">▶️</button>
                             <span class="track-title">{{ track.title }}</span>
                         </div>
-                        <audio controls preload="metadata">
+                        <audio controls preload="none">
                             <source src="{% url 'music:stream_audio' track.id %}" type="audio/mpeg">
                             Your browser does not support the audio element.
                         </audio>
 
 
-                        <form action="{% url 'music:manage_track' track.id %}" method="post" class="like-form">
+                        <form action="{% url 'music:manage_favorite' track.id %}" method="post" class="like-form">
                             {% csrf_token %}
                             <button type="submit" name="action"
                                 value="{% if track in liked_tracks %}unlike{% else %}like{% endif %}"

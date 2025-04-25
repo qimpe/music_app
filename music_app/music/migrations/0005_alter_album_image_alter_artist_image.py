@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('music', '0004_artist_image'),
+        ("music", "0004_artist_image"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='album',
-            name='image',
-            field=models.FileField(upload_to='albums_images/'),
+            model_name="album",
+            name="image",
+            field=models.FileField(upload_to="albums_images/"),
         ),
         migrations.AlterField(
-            model_name='artist',
-            name='image',
-            field=models.ImageField(upload_to='artists_cards/'),
+            model_name="artist",
+            name="image",
+            field=models.ImageField(upload_to="artists_cards/"),
         ),
     ]

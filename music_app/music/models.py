@@ -1,46 +1,58 @@
 from django.db import models
 from django.utils import timezone
+from music_statistics.models import ArtistUniqueListeners
 from users.models import User
 
 # Create your models here.
 
 
 class Music(models.Model):
-    """Абстрактный класс который реализует общие методы для музыкальных объектов"""
+    """Абстрактный класс для музыкальных объектов."""
 
-    def release(self):
-        """Релизит объект, становится доступный для пользователей"""
+    class Status(models.TextChoices):
+        DRAFT: tuple[str, str] = ("DR", "Черновик")
+        PUBLISHED: tuple[str, str] = ("PB", "Опубликован")
+
+    class Meta:
+        abstract = True
+
+    def release(self) -> None:
+        """Релизит объект, становится доступный для пользователей."""
         if not self.release_date:
             self.release_date = timezone.now()
         self.status = self.Status.PUBLISHED
         self.save()
-
-    class Meta:
-        abstract = True
 
 
 class Artist(models.Model):
     name = models.CharField(max_length=128, null=False, blank=False)
     image = models.ImageField(upload_to="artists_cards/")
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
-    bio = models.TextField(null=True, blank=True)
+    bio = models.TextField(blank=True)
     month_listeners = models.PositiveIntegerField(default=0)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
+
+    def update_unique_listeners(self, listener_id: int) -> None:
+        unique_listeners = ArtistUniqueListeners.objects(artist_id=self.pk).first()
+        if not unique_listeners:
+            unique_listeners = ArtistUniqueListeners(artist_id=self.pk)
+        unique_listeners.listeners.append(listener_id)
+        unique_listeners.save()
 
 
 class Genre(models.Model):
     title = models.CharField(max_length=64, null=False, blank=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
 
 class Album(Music):
     class Status(models.TextChoices):
-        DRAFT: str = "DR", "Черновик"
-        PUBLISHED: str = "PB", "Опубликован"
+        DRAFT: tuple[str, str] = ("DR", "Черновик")
+        PUBLISHED: tuple[str, str] = ("PB", "Опубликован")
 
     title = models.CharField(max_length=256, null=False, blank=False)
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
@@ -49,8 +61,13 @@ class Album(Music):
     release_date = models.DateTimeField(null=True, blank=True)
     is_explicit = models.BooleanField(default=False, null=False)
     status = models.CharField(
-        max_length=10, choices=Status.choices, default=Status.DRAFT
+        max_length=10,
+        choices=Status.choices,
+        default=Status.DRAFT,
     )
+
+    def __str__(self) -> str:
+        return self.title
 
     def release(self) -> None:
         return super().release()
@@ -63,16 +80,16 @@ class Track(Music):
     image = models.ImageField(upload_to="tracks_images/")
     duration = models.PositiveIntegerField(default=0)
     audio_file = models.FileField(upload_to="tracks/")
-    create_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     release_date = models.DateTimeField(blank=True, null=True)
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
     is_explicit = models.BooleanField(default=False, null=False)
 
+    def __str__(self) -> str:
+        return f"{self.artist} - {self.title}"
+
     def release(self) -> None:
         return super().release()
-
-    def __str__(self):
-        return f"{self.artist} - {self.title}"
 
 
 class Playlist(models.Model):
@@ -89,8 +106,8 @@ class Playlist(models.Model):
     tracks = models.ManyToManyField(Track)
     is_liked_playlist = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.title
-
     class Meta:
         unique_together = ("owner", "is_liked_playlist", "title")
+
+    def __str__(self) -> str:
+        return self.title

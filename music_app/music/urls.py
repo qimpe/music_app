@@ -1,49 +1,42 @@
 from django.urls import path
 
-from .views import (
-    AddTrackInPlaylist,
-    AlbumDetailView,
-    ArtistDetailView,
-    AudioStreamView,
-    CreateAlbum,
-    CreateArtistView,
-    CreatePlaylist,
-    CreateTrack,
-    ManageFavoriteTrack,
-    MyPlaylists,
-    PlaylistDetail,
-    ReleaseAlbumView,
-)
+from . import views
 
 app_name = "music"
 
 urlpatterns = [
-    path("create-artist/", CreateArtistView.as_view(), name="create_artist"),
-    path("artist/<int:artist_id>/", ArtistDetailView.as_view(), name="artist_detail"),
+    path("create-artist/", views.CreateArtistView.as_view(), name="create_artist"),
+    path("artist/<int:artist_id>/", views.ArtistDetailView.as_view(), name="artist_detail"),
+    path("artist/<int:pk>/create-track/", views.CreateTrack.as_view(), name="create_track"),
     path(
         "artist/<int:artist_id>/create-album/",
-        CreateAlbum.as_view(),
+        views.CreateAlbum.as_view(),
         name="create_album",
     ),
-    path("artist/<int:pk>/create-track/", CreateTrack.as_view(), name="create_track"),
-    path("playlist/<int:pk>", PlaylistDetail.as_view(), name="playlist_detail"),
-    path("my-playlists/", MyPlaylists.as_view(), name="my_playlists"),
-    path("create-playlist/", CreatePlaylist.as_view(), name="create_playlist"),
     path(
-        "add-track/<int:track_id>/",
-        AddTrackInPlaylist.as_view(),
-        name="add_track",
+        "like/artist/<int:artist_id>/",
+        views.FollowArtist.as_view(),
+        name="follow_artist",
     ),
     path(
         "manage-track/<int:track_id>/",
-        ManageFavoriteTrack.as_view(),
-        name="manage_track",
+        views.ManageFavoriteTrack.as_view(),
+        name="manage_favorite",
     ),
-    path("stream/<int:track_id>/", AudioStreamView.as_view(), name="stream_audio"),
-    path("album/<int:album_id>/", AlbumDetailView.as_view(), name="album_detail"),
+    path("stream/<int:track_id>/", views.AudioStreamView.as_view(), name="stream_audio"),
+    path("album/<int:album_id>/", views.AlbumDetailView.as_view(), name="album_detail"),
     path(
         "artist/<int:artist_id>/release-album/<int:album_id>/",
-        ReleaseAlbumView.as_view(),
+        views.ReleaseAlbumView.as_view(),
         name="release_album",
     ),
 ]
+
+""" path("playlist/<int:pk>", views.PlaylistDetail.as_view(), name="playlist_detail"),
+    path("my-playlists/", views.MyPlaylists.as_view(), name="my_playlists"),
+    path("create-playlist/", views.CreatePlaylist.as_view(), name="create_playlist"),
+    path(
+        "add-track/<int:track_id>/",
+        views.AddTrackInPlaylist.as_view(),
+        name="add_track",
+    ),"""

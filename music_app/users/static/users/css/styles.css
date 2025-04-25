@@ -124,3 +124,14 @@ button[type="submit"]:hover {
     transition: ease-in-out;
     filter: brightness(0.8);
 }
+.listening-history{
+    display: flex;
+    background-color: #4400ff;
+    border-radius: 5%;
+
+}
+.listening-history-link{
+    text-decoration: none;
+    color: white;
+
+}

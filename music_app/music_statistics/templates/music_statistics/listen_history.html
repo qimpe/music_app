@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'music_statistics/css/styles.css' %}">
+<h1>История прослушиваний</h1>
+
+{% for date, tracks in grouped_tracks %}
+<h2>{{ date }}</h2>
+<div class="history-track-list">
+    {% for entry in tracks %}
+    <div class="history-track-list-track-detail">
+        <img class="mini-track-cover" src="{{ entry.track.image.url }}" alt="">
+        <div class="history-track-list-info">
+            <div class="history-track-track-title">{{ entry.track.title }}</div>
+            <div class="history-track-track-artist">{{ entry.track.artist }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+
+
+
+{% endblock content %}

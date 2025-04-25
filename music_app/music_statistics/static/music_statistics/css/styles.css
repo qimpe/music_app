@@ -1,0 +1,46 @@
+.history-track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.history-track-list-track-detail {
+    display: flex;
+    align-items: center;
+    padding: 0.3rem;
+    border-bottom: 1px solid #ccc;
+    transition: background-color 0.2s ease;
+}
+
+.history-track-list-track-detail:hover {
+    background-color: rgb(64, 0, 255);
+    color: white;
+}
+
+.mini-track-cover {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    border-radius: 5px;
+}
+
+.history-track-list-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.history-track-track-title {
+    font-weight: bold;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-track-track-artist {
+    font-size: 0.9rem;
+    color: #666;
+}

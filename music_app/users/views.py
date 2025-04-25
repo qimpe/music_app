@@ -1,6 +1,6 @@
+import typing
+
 from django.contrib.auth.views import LoginView, LogoutView
-from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView
 from music.models import Artist
 
@@ -21,17 +21,19 @@ class SignInView(LoginView):
 
 
 class SignOutview(LogoutView):
-    pass
+    """Переопределенный стандартный метод выхода."""
 
 
 class UserDetailView(DetailView):
+    """Личный кабинет пользователя."""
+
     model = User
     template_name = "users/user_detail.html"
     pk_url_kwarg = "pk"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: dict[str, typing.Any]) -> dict[str, typing.Any]:
         user = self.object
-        context = super().get_context_data(**kwargs)
+        context: dict[str, typing.Any] = super().get_context_data(**kwargs)
         artists = Artist.objects.select_related("user").filter(user=user)
         context["artists"] = artists
         context["user"] = user

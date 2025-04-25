@@ -5,25 +5,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('music', '0009_playlist_tracks'),
+        ("music", "0009_playlist_tracks"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='playlist',
-            name='is_liked_playlist',
+            model_name="playlist",
+            name="is_liked_playlist",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='playlist',
-            name='title',
-            field=models.CharField(default='Мой плейлист', max_length=128, unique=True),
+            model_name="playlist",
+            name="title",
+            field=models.CharField(default="Мой плейлист", max_length=128, unique=True),
         ),
         migrations.AlterUniqueTogether(
-            name='playlist',
-            unique_together={('owner', 'is_liked_playlist')},
+            name="playlist",
+            unique_together={("owner", "is_liked_playlist")},
         ),
     ]

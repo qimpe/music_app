@@ -4,48 +4,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Album',
+            name="Album",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=256)),
-                ('image', models.FileField(upload_to='albums')),
-                ('release_date', models.DateTimeField(auto_now_add=True)),
-                ('is_explicit', models.BooleanField(default=False)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("title", models.CharField(max_length=256)),
+                ("image", models.FileField(upload_to="albums")),
+                ("release_date", models.DateTimeField(auto_now_add=True)),
+                ("is_explicit", models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
-            name='Artist',
+            name="Artist",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=128)),
-                ('bio', models.TextField()),
-                ('month_listeners', models.PositiveIntegerField(default=0)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=128)),
+                ("bio", models.TextField()),
+                ("month_listeners", models.PositiveIntegerField(default=0)),
             ],
         ),
         migrations.CreateModel(
-            name='Genre',
+            name="Genre",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=64)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("title", models.CharField(max_length=64)),
             ],
         ),
         migrations.CreateModel(
-            name='Track',
+            name="Track",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=256)),
-                ('duration', models.PositiveIntegerField()),
-                ('audio_file', models.FileField(upload_to='tracks')),
-                ('release_date', models.DateTimeField(auto_now_add=True)),
-                ('is_explicit', models.BooleanField(default=False)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("title", models.CharField(max_length=256)),
+                ("duration", models.PositiveIntegerField()),
+                ("audio_file", models.FileField(upload_to="tracks")),
+                ("release_date", models.DateTimeField(auto_now_add=True)),
+                ("is_explicit", models.BooleanField(default=False)),
             ],
         ),
     ]

@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('music', '0003_alter_artist_bio'),
+        ("music", "0003_alter_artist_bio"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='artist',
-            name='image',
-            field=models.ImageField(default=1, upload_to='artists_cards'),
+            model_name="artist",
+            name="image",
+            field=models.ImageField(default=1, upload_to="artists_cards"),
             preserve_default=False,
         ),
     ]
