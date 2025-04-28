@@ -30,11 +30,14 @@ urlpatterns = [
         views.ReleaseAlbumView.as_view(),
         name="release_album",
     ),
+    path("my-playlists/", views.MyPlaylists.as_view(), name="my_playlists"),
+    path("playlist/<int:pk>", views.PlaylistDetail.as_view(), name="playlist_detail"),
+    path("create-playlist/", views.CreatePlaylist.as_view(), name="create_playlist"),
 ]
 
-""" path("playlist/<int:pk>", views.PlaylistDetail.as_view(), name="playlist_detail"),
-    path("my-playlists/", views.MyPlaylists.as_view(), name="my_playlists"),
-    path("create-playlist/", views.CreatePlaylist.as_view(), name="create_playlist"),
+"""
+
+
     path(
         "add-track/<int:track_id>/",
         views.AddTrackInPlaylist.as_view(),

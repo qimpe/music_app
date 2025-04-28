@@ -25,7 +25,7 @@
                 <h1>{{ artist.name }}</h1>
                 <div>
                     <p>
-                        <span><strong>{{ month_listeners }} cлушателей в месяц</strong></span>
+                        <span><strong>{{ month_listeners_count }} cлушателей в месяц</strong></span>
                     </p>
                 </div>
                 <p>{{ artist.bio }}</p>
@@ -41,11 +41,11 @@
 
 
         <div>
-            {% if tracks %}
+            {% if popular_tracks %}
             <div>
                 <h2>Популярные треки</h2>
                 <div class="track-list">
-                    {% for track in tracks %}
+                    {% for track in popular_tracks %}
                     <div class="track-item" data-audio="{{ track.audio_file.url }}" data-title="{{ track.title }}"
                         data-artist="{{ track.artist }}">
 

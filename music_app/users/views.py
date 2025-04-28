@@ -2,8 +2,8 @@ import typing
 
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import CreateView, DetailView
-from music.models import Artist
 
+from . import services
 from .forms import SignInForm, SignUpForm
 from .models import User
 
@@ -34,7 +34,6 @@ class UserDetailView(DetailView):
     def get_context_data(self, **kwargs: dict[str, typing.Any]) -> dict[str, typing.Any]:
         user = self.object
         context: dict[str, typing.Any] = super().get_context_data(**kwargs)
-        artists = Artist.objects.select_related("user").filter(user=user)
-        context["artists"] = artists
+        context["artists"] = services.fetch_artists_by_user(user=user)
         context["user"] = user
         return context

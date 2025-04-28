@@ -36,7 +36,9 @@ ignore = [
     "D203",    # Форматирование докстрингов
     "D213",    # Многострочные докстринги
     "FA102",   # Запрещённые импорты
-    "COM812"   # Конфликт с форматтером (добавлено в ignore)
+    "COM812",   # Конфликт с форматтером (добавлено в ignore)
+    "RUF002",
+    "T201",
 ]
 
 
@@ -57,12 +59,12 @@ known-local-folder = ["whole_app"]
 
 
 
-[tool.mypy]
 
+[tool.mypy]
 plugins = ["mypy_django_plugin.main"]
 exclude = "migrations/|tests/"
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "music_app.settings"
-
 

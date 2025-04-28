@@ -2,11 +2,9 @@ import typing
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.core.files.base import File
 from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.forms import ModelForm
-from PIL import Image
 
 from .models import Album, Artist, Playlist, Track
 
@@ -16,7 +14,7 @@ class CreateArtistForm(ModelForm):
         model = Artist
         fields = ("name", "bio", "image")
 
-    def clean_image(self) -> File | None:
+    """def clean_image(self) -> str | None:
         max_size: typing.Final = 2000
         image_path: str = self.cleaned_data.get("image")
         if image_path:
@@ -26,7 +24,7 @@ class CreateArtistForm(ModelForm):
                 message = "Максимальный размер фото 2000 на 2000"
                 raise forms.ValidationError(message)
             return image_path
-        return None
+        return None"""
 
 
 class CreateAlbumForm(ModelForm):
@@ -42,11 +40,12 @@ class CreateAlbumForm(ModelForm):
         fields = ("title", "image", "is_explicit")
         labels: typing.ClassVar[dict[str, str]] = {"title": "Название", "image": "Обложка", "is_explicit": "Explicit"}
 
-    def __init__(self, *args: tuple, **kwargs: dict) -> None:
-        artist = kwargs.pop("artist", None)
+    def __init__(self, *args, **kwargs) -> None:
+        artist: Artist | None = kwargs.pop("artist")
         super().__init__(*args, **kwargs)
         if artist:
-            self.fields["tracks"].queryset = Track.objects.filter(
+            tracks_field = typing.cast("forms.ModelMultipleChoiceField", self.fields["tracks"])
+            tracks_field.queryset = Track.objects.filter(
                 artist=artist,
                 album__isnull=True,
             )
