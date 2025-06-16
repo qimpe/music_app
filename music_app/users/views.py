@@ -10,17 +10,21 @@ from .models import User
 
 # Create your views here.
 class SignUpView(CreateView):
+    """Регистрация аккаунта."""
+
     form_class = SignUpForm
     template_name = "users/sign_up.html"
 
 
 class SignInView(LoginView):
+    """Вход в аккаунт."""
+
     form_class = SignInForm
     template_name = "users/sign_in.html"
     redirect_authenticated_user = True
 
 
-class SignOutview(LogoutView):
+class SignOutView(LogoutView):
     """Переопределенный стандартный метод выхода."""
 
 

@@ -2,56 +2,60 @@ import typing
 from pathlib import Path
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core import exceptions
+from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
 from django.forms import ModelForm
-from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, StreamingHttpResponse
 from django.http.response import HttpResponseRedirectBase
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView
+from music_statistics import services as stat_services
+from music_statistics import services as stats_services
 from mutagen import File
 
-from . import services
 from .forms import CreateAlbumForm, CreateArtistForm, CreatePlaylistForm, CreateTrackForm
 from .mixins import ArtistAccessMixin
-from .models import Album, Artist, Playlist, Track
-
-if typing.TYPE_CHECKING:
-    from users.models import User
+from .models import Album, Artist, Music, Playlist, Track
+from .services import services
+from .services.admin_services import approve_music_object, check_staff_permissions, reject_music_object
 
 
 # Create your views here.
 # * Main Page
 def index(request: HttpRequest) -> HttpResponse:
     """Главная страница с топом артистов, последними релизами артистов за которыми следит пользователь."""
-    context: dict = {"top_month_artists": services.fetch_top_5_artists_per_month()}
+    context: dict = {
+        "top_month_artists": services.fetch_top_5_artists_per_month(),
+        "chart": stats_services.fetch_music_chart(),
+    }
     return render(request, "index.html", context=context)
 
 
 # * Artist Views
-# ! refactoring
-class CreateArtistView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class CreateArtistView(LoginRequiredMixin, View):
     """Представление создание артиста."""
 
-    form_class = CreateArtistForm
-    template_name = "music/create_artist.html"
-    permission_denied_message = "The number of artists you can create has been exceeded"
+    def get(self, request: HttpRequest) -> HttpResponse:
+        form = CreateArtistForm()
+        return render(request, "music/create_artist.html", context={"form": form})
 
-    def test_func(self) -> bool:
-        """Проверяет может ли пользователь создать более одного артиста. Лейбл может создать больше 1 артиста."""
-        user = typing.cast("User", self.request.user)
-        return user.is_label or Artist.objects.filter(user=user).count() < 1
+    def post(self, request: HttpRequest) -> HttpResponse:
+        form = CreateArtistForm(request.POST, request.FILES)
+        try:
+            if form.is_valid():
+                artist = services.create_artist(request.user, form)
+                messages.success(request, "Артист успешно создан!")
+                return redirect("music:artist_detail", artist_id=artist.id)
 
-    def form_valid(self, form: CreateArtistForm) -> HttpResponse:
-        user = typing.cast("User", self.request.user)
-        form.instance.user = user
-        return super().form_valid(form)
+            messages.error(request, "Исправьте ошибки в форме")
+            return render(request, "music/create_artist.html", {"form": form})
 
-    def get_success_url(self) -> str:
-        artist = typing.cast("Artist", self.object)
-        return reverse_lazy("music:artist_detail", kwargs={"artist_id": artist.pk})
+        except exceptions.ValidationError as e:
+            return render(request, "music/create_artist.html", {"form": form, "error": str(e)})
 
 
 class ArtistDetailView(LoginRequiredMixin, DetailView):
@@ -64,9 +68,19 @@ class ArtistDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs: dict) -> dict[str, typing.Any]:
         context = super().get_context_data(**kwargs)
-        artist = self.object
+
         user = self.request.user
-        services.fetch_artists_detail_page(context, user, artist)
+        artist = self.object
+        services.fetch_or_create_artist_unique_listeners(artist.id)
+        user_likes_playlist = services.fetch_or_create_user_likes_playlist(user=user)
+        unique_listeners = services.fetch_artists_unique_listeners(artist_id=artist.id)
+
+        context["albums"] = services.fetch_artists_album(user=user, artist=artist)
+        context["month_listeners_count"] = len(unique_listeners["listeners"]) if unique_listeners["listeners"] else 0
+        # context["popular_tracks"] = services.fetch_artists_popular_tracks(artist_id=artist.id)
+        context["popular_tracks"] = services.fetch_artists_popular_tracks(artist_id=artist.id)
+        context["liked_tracks"] = user_likes_playlist.tracks.filter(artist=artist) if user_likes_playlist else []
+
         return context
 
 
@@ -79,38 +93,30 @@ class FollowArtist(LoginRequiredMixin, View):
             messages.success(request, "Артист добален в лайки")
         else:
             messages.error(request, "Артист не найден")
+            # TODO нужно перенаправить куда-то если артист не найден
         return redirect("music:artist_detail", artist_id=artist_id)
 
 
 # * Albums views
-class CreateAlbum(ArtistAccessMixin, LoginRequiredMixin, CreateView):
+class CreateAlbum(ArtistAccessMixin, LoginRequiredMixin, View):
     """Представление создания альбома."""
 
-    form_class = CreateAlbumForm
-    template_name = "music/create_album.html"
+    def get(self, request: HttpRequest, artist_id: int) -> HttpResponse:
+        tracks = services.fetch_tracks_without_album(self.artist)
+        form = CreateAlbumForm(tracks=tracks)
+        return render(
+            request, "music/create_album.html", context={"form": form, "artist_id": artist_id, "tracks": tracks}
+        )
 
-    def get_form_kwargs(self) -> dict[str, typing.Any]:
-        kwargs = super().get_form_kwargs()
-        kwargs["artist"] = self.artist
-        return kwargs
-
-    def get_context_data(self, **kwargs: dict) -> dict[str, typing.Any]:
-        context = super().get_context_data(**kwargs)
-        context["artist_id"] = self.kwargs["artist_id"]
-        context["tracks"] = services.fetch_tracks_without_album(self.artist)
-        return context
-
-    def form_valid(self, form: ModelForm) -> HttpResponse:
-        form.instance.artist = self.artist
-        response = super().form_valid(form)
-        tracks = form.cleaned_data.get("tracks")
-
-        if tracks:
-            tracks.update(album=form.instance)
-        return response
-
-    def get_success_url(self) -> str:
-        return reverse_lazy("music:artist_detail", kwargs={"artist_id": self.artist.pk})
+    def post(self, request: HttpRequest, artist_id: int) -> HttpResponse:
+        tracks = services.fetch_tracks_without_album(self.artist)
+        form = CreateAlbumForm(request.POST, request.FILES, tracks=tracks)
+        try:
+            if form.is_valid():
+                album = services.create_album(form, artist_id)
+                return redirect("music:album_detail", album_id=album.id)
+        except exceptions.ValidationError as e:
+            return render(request, "music/create_artist.html", {"form": form, "error": str(e)})
 
 
 class AlbumDetailView(DetailView):
@@ -123,10 +129,10 @@ class AlbumDetailView(DetailView):
 
     def get_context_data(self, **kwargs: dict) -> dict[str, typing.Any]:
         context = super().get_context_data(**kwargs)
-        album: Album = self.get_object()
+        album = services.fetch_album_by_id(self.kwargs["album_id"])
         if self.request.user == album.artist.user:
             context["artist"] = album.artist
-        context.update({"tracks": services.fetch_tracks_in_album()})
+        context.update({"tracks": services.fetch_tracks_in_album(album)})
         return context
 
 
@@ -138,14 +144,16 @@ class ReleaseAlbumView(ArtistAccessMixin, View):
         request: HttpRequest,  # noqa: ARG002
         artist_id: int,
         album_id: int,
-    ) -> HttpResponse | HttpResponseRedirectBase:
-        if album := get_object_or_404(Album, pk=album_id):
-            album.release()
-            return redirect("music:artist_detail", artist_id=artist_id)
-        return HttpResponse("Album does not exist", status=404)
+    ) -> HttpResponse:
+        try:
+            if album := services.fetch_album_by_id(album_id):
+                album.release()
+                return redirect("music:artist_detail", artist_id=artist_id)
+        except Http404:
+            return HttpResponse("Album does not exist", status=404)
 
 
-# * Track views
+############################# * Track views
 class CreateTrack(LoginRequiredMixin, CreateView):
     """Представление создания трека."""
 
@@ -177,6 +185,9 @@ class CreateTrack(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+##################################################*
+
+
 class AudioStreamView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest, track_id: int) -> StreamingHttpResponse:
         track = get_object_or_404(Track, id=track_id)
@@ -184,6 +195,8 @@ class AudioStreamView(LoginRequiredMixin, View):
         file_size: int = Path.stat(file_path).st_size
         range_header: str = request.headers.get("Range", "").strip()
         start, end = range_header.replace("bytes=", "").split("-")
+        services.add_unique_listener_to_artist(artist_id=track.artist.id, listener_id=request.user.id)
+        stat_services.add_track_to_listening_history(request.user.id, track.id)
 
         content_type = "audio/mpeg"
         response = None
@@ -223,68 +236,16 @@ class AudioStreamView(LoginRequiredMixin, View):
         return response
 
 
-"""typing.cast("User", request.user)
-        user.add_track_in_listening_history(track_id)
-
-
-        track.artist.update_unique_listeners(user.id)
-        track = get_object_or_404(Track, id=track_id)
-        track_stream: TrackStream = TrackStream.objects(artist_id=track.artist.id, track_id=track_id).first()
-        if not track_stream:
-            track_stream = TrackStream(artist_id=track.artist.id, track_id=track_id)
-        track_stream.listen_count += 1
-        track_stream.save()
-
-        file_path: str = track.audio_file.path
-        file_size: int = Path.stat(file_path).st_size
-        range_header: str = request.headers.get("Range", "").strip()
-        start, end = range_header.replace("bytes=", "").split("-")
-
-        content_type = "audio/mpeg"
-        response = None
-
-        if range_header:
-            start = int(start)
-            end = int(end) if end else file_size - 1
-            file_length: int = end - start + 1
-            response = StreamingHttpResponse(
-                self.stream_file(start, file_path, file_length),
-                status=206,
-                content_type=content_type,
-            )
-            response["Content-Length"] = str(file_length)
-            response["Accept-Ranges"] = "bytes"
-        else:
-            pass
-
-        return response
-
-    def stream_file(self, start: int, file_path: str, file_length: int) -> typing.Generator[bytes, None, None]:
-        with Path(file_path).open("rb") as file:
-            file.seek(start)
-            remaining = file_length
-            chunk_size: typing.Final = 8192  # 8KB
-
-            while remaining > 0:
-                data = file.read(min(chunk_size, remaining))
-                if not data:
-                    break
-                yield data
-                remaining -= len(data)"""
-
-
-class ManageFavoriteTrack(LoginRequiredMixin, View):
+class ManageTrack(LoginRequiredMixin, View):
     def post(self, request: HttpRequest, track_id: int) -> HttpResponseRedirectBase:
         action = request.POST.get("action")
-        if action == "like":
-            track = services.add_track_in_likes_playlist(track_id, request.user)
-            messages.success(request, f"Трек {track.title} был добавлен")
-        elif action == "unlike":
-            track = services.delete_track_from_likes_playlist(track_id, request.user)
-            messages.info(request, f"Трек {track.title} был удален")
+        artist_id = None
+        if action in ("like", "unlike"):
+            artist_id = services.manage_track(request.user, action, track_id, is_liked=True)
         else:
-            messages.error(request, "Неизвестное действие")
-        return redirect("music:artist_detail", artist_id=track.artist.id)
+            playlist_id = request.POST.get("playlist_id")
+            artist_id = services.manage_track(request.user, action, track_id, is_liked=False, playlist_id=playlist_id)
+        return redirect("music:artist_detail", artist_id=artist_id)
 
 
 # * Playlists view
@@ -292,6 +253,7 @@ class PlaylistDetail(LoginRequiredMixin, DetailView):
     model = Playlist
     template_name = "music/playlist_detail.html"
     context_object_name = "playlist"
+    pk_url_kwarg = "playlist_id"
 
     def get_context_data(self, **kwargs: dict[str, typing.Any]) -> dict[str, typing.Any]:
         context = super().get_context_data(**kwargs)
@@ -307,13 +269,63 @@ class MyPlaylists(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet[Playlist]:
         request: HttpRequest = self.request
-        return Playlist.objects.filter(owner=request.user)
+        return services.fetch_my_playlists(request.user)
 
 
-class CreatePlaylist(LoginRequiredMixin, CreateView):
+#! refactoring
+class CreatePlaylistView(LoginRequiredMixin, CreateView):
     form_class = CreatePlaylistForm
     template_name = "music/create_playlist.html"
 
     def form_valid(self, form: ModelForm) -> HttpResponse:
         form.instance.owner = self.request.user
         return super().form_valid(form)
+
+
+class DeletePlaylistView(LoginRequiredMixin, View):
+    def post(self, request: HttpRequest, playlist_id: Playlist) -> None:
+        try:
+            services.delete_playlist(request.user, playlist_id)
+            messages.success(request, "Плейлист удален")
+            return redirect(reverse("music:my_playlists"))
+        except PermissionDenied as e:
+            messages.error(request, str(e))
+            return redirect("music:playlist_detail", playlist_id=playlist_id)
+
+
+class UpdatePlaylistView(LoginRequiredMixin, View):
+    def get(self, request: HttpRequest, playlist_id: Playlist) -> None:
+        return render(request, "music/update_playlist.html", context={"playlist_id": playlist_id})
+
+    def post(self, request: HttpRequest, playlist_id: Playlist) -> None:
+        try:
+            title = request.POST.get("title")
+            is_public = request.POST.get("is_public") == "on"
+            image = request.FILES.get("image")
+            services.update_playlist(self.request.user, title, image, playlist_id, is_public=is_public)
+            messages.success(request, "Плейлист обновлен")
+            return redirect("music:playlist_detail", playlist_id=playlist_id)
+
+        except PermissionDenied as e:
+            messages.error(request, str(e))
+            return redirect("music:playlist_detail", playlist_id=playlist_id)
+
+
+def review_requests(request: HttpRequest) -> HttpResponse:
+    check_staff_permissions(request.user)
+    artists_requests = services.fetch_music_objects_and_artist_by_status(Music.Status.PENDING)
+    return render(request, "music/review_requests.html", context={"artists_requests": artists_requests})
+
+
+def approve_review_request(request: HttpRequest, obj_id: int) -> None:
+    obj_type = request.POST.get("obj_type")
+    obj = services.fetch_music_objects_by_id_and_type(obj_type, obj_id)
+    approve_music_object(request.user, obj)
+    return redirect("music:review_requests")
+
+
+def reject_review_request(request: HttpRequest, obj_id: int) -> None:
+    obj_type = request.POST.get("obj_type")
+    obj = services.fetch_music_objects_by_id_and_type(obj_type, obj_id)
+    reject_music_object(request.user, obj)
+    return redirect("music:review_requests")

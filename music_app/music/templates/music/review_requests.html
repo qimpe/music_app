@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'music/css/styles.css' %}">
+<div>
+    <h2>Новые артисты</h2>
+    {% for artists_request in artists_requests.artists %}
+    <div class="moderation-actions">
+        <a href="{% url 'music:artist_detail' artists_request.id %}">{{artists_request}}</a>
+        <form action="{% url 'music:approve_review_requests' obj_id=artists_request.id %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="obj_type" value="artist">
+            <button type="submit" class="btn-approve">Одобрить</button>
+        </form>
+        <form action="{% url 'music:reject_review_requests' obj_id=artists_request.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-reject">Отклонить</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+<div>
+    <h2>Новые альбомы</h2>
+    {% for albums_request in artists_requests.albums %}
+    <div class="moderation-actions">
+        {{albums_request}}
+        <form action="{% url 'music:approve_review_requests' obj_id=albums_request.id %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="obj_type" value="album">
+            <button type="submit" class="btn-approve">Одобрить</button>
+        </form>
+
+        <form action="{% url 'music:reject_review_requests' obj_id=albums_request.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-reject">Отклонить</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+<div>
+    <h2>Новые треки</h2>
+    {% for tracks_request in artists_requests.tracks %}
+    <div class="moderation-actions">
+        {{tracks_request}}
+        <form action="{% url 'music:approve_review_requests' obj_id=tracks_request.id %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="obj_type" value="track">
+            <button type="submit" class="btn-approve">Одобрить</button>
+        </form>
+
+        <form action="{% url 'music:reject_review_requests' obj_id=tracks_request.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-reject">Отклонить</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock content %}

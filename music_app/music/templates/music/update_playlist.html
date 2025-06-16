@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- update_playlist.html -->
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div>
+        <label>Название:</label>
+        <input type="text" name="title" value="{{ playlist.title }}">
+    </div>
+    <div>
+        <label>Обложка:</label>
+        <input type="file" accept="image/*" name="image">
+        {% if playlist.image %}
+        <p>Текущая обложка: <img src="{{ playlist.image.url }}" width="100"></p>
+        {% endif %}
+    </div>
+    <div>
+        <label>Приватный:</label>
+        <input type="checkbox" name="is_public" {% if playlist.is_public %}checked{% endif %}>
+    </div>
+    <button type="submit">Сохранить</button>
+</form>
+{% endblock content %}

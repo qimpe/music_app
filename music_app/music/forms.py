@@ -41,14 +41,9 @@ class CreateAlbumForm(ModelForm):
         labels: typing.ClassVar[dict[str, str]] = {"title": "Название", "image": "Обложка", "is_explicit": "Explicit"}
 
     def __init__(self, *args, **kwargs) -> None:
-        artist: Artist | None = kwargs.pop("artist")
+        tracks = kwargs.pop("tracks", None)
         super().__init__(*args, **kwargs)
-        if artist:
-            tracks_field = typing.cast("forms.ModelMultipleChoiceField", self.fields["tracks"])
-            tracks_field.queryset = Track.objects.filter(
-                artist=artist,
-                album__isnull=True,
-            )
+        self.fields["tracks"].queryset = tracks
 
 
 class CreateTrackForm(ModelForm):

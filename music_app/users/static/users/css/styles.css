@@ -1,5 +1,21 @@
+.artist-creation{
+    padding-bottom: 1rem;
+   
+}
+.artist-creation a{
+    text-decoration: none;
+    font-size: larger;
+    color: white;
+   
+}
+.artist-creation:hover a{
+    text-decoration: none;
+    font-size: larger;
+    color: rgb(82, 2, 255);
+    transition: ease-in-out;
+   
+}
 
-/* Карточка с формой */
 .sign-card {
     background: rgb(16, 16, 16);
     padding: 2rem;
@@ -109,6 +125,9 @@ button[type="submit"]:hover {
     text-align: center;
     gap: 2rem;
 }
+.artist-list{
+    padding: 1rem;
+}
 .my-artist-img{
     width: 250px;
     height: 250px;
@@ -116,7 +135,6 @@ button[type="submit"]:hover {
     border-radius: 50%; /* если нужен скругленный */
 }
 .my-artist-img:hover{
-    transform: scale(1.2);
     opacity: 1;
     pointer-events: auto;
     z-index: 3;
@@ -124,14 +142,39 @@ button[type="submit"]:hover {
     transition: ease-in-out;
     filter: brightness(0.8);
 }
-.listening-history{
-    display: flex;
+.listening-history {
+    display: inline-flex;
     background-color: #4400ff;
-    border-radius: 5%;
-
+    padding: 0.5rem;
+    border-radius: 0.5rem;
 }
 .listening-history-link{
     text-decoration: none;
     color: white;
+}
+.listening-history:hover{
+    text-decoration: none;
+    background-color: rgb(72, 0, 255);
+}
+
+
+.liked-artists {
+    display: inline-flex;
+    background-color: #4400ff;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+.liked-artists-link{
+    text-decoration: none;
+    color: white;
+}
+.liked-artists:hover{
+    text-decoration: none;
+    background-color: rgb(72, 0, 255);
+}
+
+.profile-buttons{
+    display: flex;
+    gap:1rem;
 
 }

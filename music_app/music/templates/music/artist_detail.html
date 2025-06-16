@@ -33,15 +33,22 @@
             <div class="artist-actions">
                 <form action="{% url 'music:follow_artist' artist_id=artist.id %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="profile-like-link">❤️</button>
+                    <button type="submit" class="profile-like-link">
+                        <img src="{% static 'icons/heart.png' %}" alt="Лайк" class="icon" width="22" height="22">
+                    </button>
                 </form>
-                <a class=" profile-follow-link" href="">Подписаться</a>
+
+                <a class="profile-follow-link" href="#">
+                    <img src="{% static 'icons/sub_bell.png' %}" alt="Подписаться" class="icon" width="24" height="24">
+                </a>
+
             </div>
         </div>
 
 
         <div>
             {% if popular_tracks %}
+
             <div>
                 <h2>Популярные треки</h2>
                 <div class="track-list">
@@ -59,7 +66,7 @@
                         </audio>
 
 
-                        <form action="{% url 'music:manage_favorite' track.id %}" method="post" class="like-form">
+                        <form action="{% url 'music:manage_track' track.id %}" method="post" class="like-form">
                             {% csrf_token %}
                             <button type="submit" name="action"
                                 value="{% if track in liked_tracks %}unlike{% else %}like{% endif %}"
@@ -76,30 +83,12 @@
                     <div id="player-info">
                         <span id="player-title"></span> — <span id="player-artist"></span>
                     </div>
-                    <audio id="global-audio" controls autoplay></audio>
+                    <audio preload="metadata" id="global-audio" controls autoplay></audio>
                 </div>
 
 
             </div>
-            {% if albums %}
-            <h2>Последние релизы</h2>
 
-            <div class="albums-list">
-                {% for album in albums %}
-                <a class="album-detail" href="{% url 'music:album_detail' album.id %}">
-                    <div class="album-list-data">
-                        <img class="profile-album-cover" src="{{ album.image.url }}" alt="{{ album.name }}">
-                        <div class="album-profile-info">
-                            <h3 class="album-title">{{ album.title }}</h3>
-                            <p>{{ album.artist }}</p>
-                            <p>{{ album.release_date|date:"Y" }}</p>
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-
-            </div>
-            {% endif %}
 
 
         </div>
@@ -109,7 +98,25 @@
             <p>У тебя пока нет треков. Создай свой первый трек!</p>
         </div>
         {% endif %}
+        {% if albums %}
 
+        <h2>Последние релизы</h2>
+        <div class="albums-list">
+            {% for album in albums %}
+            <a class="album-detail" href="{% url 'music:album_detail' album.id %}">
+                <div class="album-list-data">
+                    <img class="profile-album-cover" src="{{ album.image.url }}" alt="{{ album.name }}">
+                    <div class="album-profile-info">
+                        <h3 class="album-title">{{ album.title }}</h3>
+                        <p>{{ album.artist }}</p>
+                        <p>{{ album.release_date|date:"Y" }}</p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+
+        </div>
+        {% endif %}
         {% if artist.user == request.user %}
         <div class="release-manage">
             <h2>Управление релизами</h2>

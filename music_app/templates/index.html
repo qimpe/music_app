@@ -21,5 +21,24 @@
 
     <script src="{% static 'js/carousel.js' %}"></script>
 </div>
+<!-- HTML -->
+<section class="chart-section">
+    <h3 class="chart-title"><a href="{% url 'music_statistics:top_chart' %}">Чарт</a></h3>
+    <div class="chart-tracks">
+        {% for track in chart %}
+        <article class="chart-track">
+            {{forloop.counter}}
+            <div class="track-media">
+                <img class="track-cover" src="{{ track.image.url }}" alt="Обложка трека {{ track.title }}"
+                    loading="lazy" width="60" height="60">
+            </div>
+            <div class="track-info">
+                <h4 class="track-title">{{ track.title }}</h4>
+                <p class="track-artist">{{ track.artist }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
 
 {% endblock content %}

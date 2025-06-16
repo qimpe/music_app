@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 
-<form action="{% url 'music:create_artist' %}" method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{form.as_p}}
+
+    {{ form.as_p }}
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
     <button type="submit">Стать Артистом</button>
 </form>
 

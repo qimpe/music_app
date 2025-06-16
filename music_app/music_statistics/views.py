@@ -1,44 +1,62 @@
-from django.views.generic import TemplateView
+import typing
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import QuerySet
+from django.views.generic import ListView, TemplateView
+from music.models import Artist, Track
+
+from . import services
 
 
-class ListeningHistoryListView(TemplateView):
-    """Возвращает треки прослушенные пользователем, сгрупированных по дате."""
+class ListeningHistoryListView(LoginRequiredMixin, TemplateView):
+    """Отображает историю прослушиваний, сгруппированную по датам."""
 
     template_name = "music_statistics/listen_history.html"
-    paginate_by = 50
-
-    """def _get_listening_history(self, user_id: int) -> UserListeningHistory | None:
-        Получает историю прослушиваний для текущего пользователя.
-        return UserListeningHistory.objects(user_id=user_id).first()
-
-    def _create_track_map(self, tracks_data: list[TrackListening]) -> dict[int, Track]:
-        Создает словарь для достура к треку по ID.
-        track_ids = [track.track_id for track in tracks_data]
-        track_objs = Track.objects.filter(id__in=track_ids)
-        return {track.id: track for track in track_objs}
-
-    def _group_tracks_by_date(self, tracks_data: list[TrackListening], track_dict: dict[int, Track]) -> defaultdict:
-        Группирует треки по дате прослушивания.
-        grouped_tracks = defaultdict(list)
-        for track_data in tracks_data:
-            track = track_dict.get(track_data.track_id)
-            if not track:
-                continue
-            listen_date = track_data.listened_at.strftime("%Y-%m-%d")
-            grouped_tracks[listen_date].append(
-                {
-                    "track": track,
-                    "listened_at": track_data.listened_at,
-                }
-            )
-        return grouped_tracks
 
     def get_context_data(self, **kwargs: dict) -> dict[str, typing.Any]:
         context = super().get_context_data(**kwargs)
-        listening_history = self._get_listening_history(self.request.user.id)
-        if listening_history:
-            tracks_data = listening_history.tracks
-            tracks_dict = self._create_track_map(tracks_data)
-            grouped_tracks = self._group_tracks_by_date(tracks_data, tracks_dict)
-            context["grouped_tracks"] = sorted(grouped_tracks.items(), reverse=True)
-        return context"""
+        user_id = self.request.user.id
+
+        raw_history = services.fetch_user_listening_history(user_id)
+
+        if raw_history and "listened_tracks" in raw_history:
+            listened_tracks = raw_history["listened_tracks"]
+
+            track_map = services.create_track_map(listened_tracks)
+            print(track_map)
+            grouped_tracks = services.group_tracks_by_date(listened_tracks)
+            processed_data = []
+            for date_str, entries in sorted(grouped_tracks.items(), reverse=True):
+                date_entries = []
+                for entry in entries:
+                    track_data = track_map.get(entry["track_id"], {})
+                    date_entries.append({"track": track_data, "listened_at": entry["listened_at"]})
+                processed_data.append((date_str, date_entries))
+
+            context["grouped_tracks"] = processed_data
+
+        return context
+
+
+class TopChartDetailView(ListView):
+    """Показывает топ 100 треков в чарте."""
+
+    model = Track
+    template_name = "music_statistics/music_chart.html"
+    context_object_name = "tracks"
+    paginate_by = 10
+
+    def get_queryset(self) -> QuerySet[Track]:
+        return services.fetch_music_chart()
+
+
+class UserLikedArtistView(ListView):
+    """Показывает любимых артистов пользователя."""
+
+    model = Artist
+    template_name = "music_statistics/liked_artists.html"
+    context_object_name = "artists"
+    paginate_by = 10
+
+    def get_queryset(self) -> QuerySet[Artist]:
+        return services.fetch_users_liked_artists(self.request.user.id)

@@ -10,13 +10,12 @@
     <!-- Блок создания артиста -->
     <div class="artist-creation">
         <h3>Аритист? Подавай заявку на карточку музыканта!
-            <a href="{% url 'music:create_artist' %}">Создать карточку</a>
+            <a href="{% url 'music:create_artist' %}">Создать карточку!</a>
         </h3>
     </div>
 
-    <!-- Блок списка артистов -->
+    <h3>Страницы артистов</h3>
     <div class="artist-list">
-        <h3>Страницы артистов</h3>
         {% if artists %}
         <div class="my-artists">
             {% for artist in artists %}
@@ -27,20 +26,23 @@
         </div>
         {% endif %}
     </div>
-
-    <!-- Блок выхода из системы -->
+    <div class="profile-buttons">
+        <div class="listening-history">
+            <a class="listening-history-link" href="{% url 'music_statistics:listening_history' user_id=user.id %}">
+                История прослушиваний
+            </a>
+        </div>
+        <div class="liked-artists">
+            <a class="liked-artists-link" href="{% url 'music_statistics:user_liked_artists' %}">
+                Любимые артисты
+            </a>
+        </div>
+    </div>
     <div class="logout-section">
         <form action="{% url 'users:sign_out' %}" method="post">
             {% csrf_token %}
             <button type="submit">Выйти</button>
         </form>
-    </div>
-
-    <!-- Блок истории прослушиваний -->
-    <div class="listening-history">
-        <a class="listening-history-link" href="{% url 'music_statistics:listening_history' user_id=user.id %}">
-            История прослушиваний
-        </a>
     </div>
 </div>
 

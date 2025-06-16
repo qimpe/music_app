@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'music_statistics/css/styles.css' %}">
+<link rel="stylesheet" href="{% static 'music/css/styles.css' %}">
+<h1>Чарты</h1>
+<section class="chart-section">
+    <div class="chart-tracks">
+        {% for track in tracks %}
+        <article class="chart-track">
+            {{forloop.counter}}
+            <div class="track-media">
+                <img class="chart-track-cover" src="{{ track.image.url }}" alt="Обложка трека {{ track.title }}"
+                    loading="lazy">
+            </div>
+            <div class="track-info">
+                <h4 class="track-title">{{ track.title }}</h4>
+                <p class="track-artist">{{ track.artist }}</p>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 
-from mongoengine import connect
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -89,20 +87,15 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     },
 }
-MONGODB_NAME = "music_app"
 
 ELASTICSEARCH_DSL = {
     "default": {
         "hosts": "localhost:9200",
     },
 }
-
-connect(
-    db=MONGODB_NAME,
-    host="localhost",  # или URI подключения
-    port=27017,
-)
-
+MONGO_DB = "music_app"
+MONGO_HOST = "localhost"
+MONGO_PORT = 27017
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

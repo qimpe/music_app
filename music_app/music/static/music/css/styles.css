@@ -2,7 +2,9 @@
 h1{
     font-size: 3em;
 }
-
+h2{
+  padding: 1rem;
+}
 .alert {
     padding: 15px;
     margin: 20px 0;
@@ -178,7 +180,7 @@ h1{
 }
 
 .album-title {
-  font-size: 2.5rem;
+  font-size: 1rem;
   font-weight: bold;
 }
 
@@ -287,23 +289,19 @@ h1{
   background-color: #2c067e;
 }
 .profile-like-link{
-  
   text-decoration: none;
   padding: 0.5rem;
   background-color: #5015ff;
   border-radius: 999px;
-  color: white;
-  font-weight: bold;
+  
   transition: background-color 0.3s ease;
 }
 .profile-follow-link{
-
   text-decoration: none;
   padding: 0.5rem;
   background-color: #5015ff;
   border-radius: 999px;
-  color: white;
-  font-weight: bold;
+
   transition: background-color 0.3s ease;
 }
 .profile-follow-link:hover{
@@ -317,4 +315,66 @@ h1{
   align-items: start;
   gap: 12px;
   
+}
+.my-playlists-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.playlist-item {
+  flex: 0 0 250px;
+}
+
+.my-playlist-image img {
+  border-radius: 50%;
+  width: 250px;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.my-playlist-image img:hover {
+  transform: scale(1.05);
+}
+
+.create-playlist-btn {
+  text-decoration: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  background-color: #5015ff;
+  color: white;
+  margin-top: 2rem;
+  display: inline-block;
+  font-weight: bold;
+}
+.my-playlists-list a{
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+}
+.delete-playlist-button{
+  padding: 0.5rem;
+  background-color: #5015ff;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
+}
+.update-playlist-button{
+  padding: 0.5rem;
+  background-color: #5015ff;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s ease;
 }
